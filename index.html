@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For You, My Love</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Sacramento&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --night: #0a0612;
+      --pink: #ff6eb4;
+      --pink-soft: #ffb3d9;
+      --pink-glow: rgba(255,110,180,0.3);
+      --gold: #ffd97d;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--night);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* ── STARS ── */
+    .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .star {
+      position: absolute; background: white; border-radius: 50%;
+      animation: twinkle var(--dur) var(--del) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      0%  { opacity: 0.1; transform: scale(0.8); }
+      100%{ opacity: 0.9; transform: scale(1.2); }
+    }
+
+    /* ── MOON ── */
+    .moon {
+      position: fixed;
+      top: clamp(50px, 8vh, 70px);
+      right: clamp(16px, 5vw, 80px);
+      z-index: 1;
+      width: clamp(40px, 6vw, 70px);
+      height: clamp(40px, 6vw, 70px);
+      background: radial-gradient(circle at 35% 40%, #fff8e7, #ffd97d 60%, #ffb347);
+      border-radius: 50%;
+      box-shadow: 0 0 40px rgba(255,217,125,0.4);
+      animation: moonFloat 8s ease-in-out infinite;
+    }
+    @keyframes moonFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    /* ── MUSIC PLAYER ── */
+    #player {
+      position: fixed;
+      top: clamp(8px,1.5vh,16px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(10,6,18,0.85);
+      border: 1px solid rgba(255,110,180,0.35);
+      border-radius: 50px;
+      padding: clamp(6px,1vh,8px) clamp(12px,2vw,20px);
+      display: flex;
+      align-items: center;
+      gap: clamp(8px,1.5vw,14px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 24px rgba(255,110,180,0.15);
+      width: clamp(280px, 90vw, 380px);
+      max-width: calc(100vw - 32px);
+    }
+
+    .player-icon {
+      width: clamp(28px,4vw,36px); height: clamp(28px,4vw,36px);
+      background: linear-gradient(135deg, var(--pink), #c74b8a);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .player-icon svg { width: clamp(12px,1.8vw,16px); height: clamp(12px,1.8vw,16px); fill: white; }
+
+    .player-info { flex: 1; min-width: 0; }
+    .player-track {
+      color: var(--pink-soft);
+      font-size: clamp(11px,1.6vw,13px);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .player-sub { color: rgba(255,179,217,0.5); font-size: clamp(8px,1.1vw,10px); letter-spacing: 1px; text-transform: uppercase; margin-top: 1px; }
+
+    .player-controls { display: flex; gap: clamp(5px,0.8vw,8px); align-items: center; flex-shrink: 0; }
+    .player-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,179,217,0.6); transition: color 0.2s;
+      padding: 4px; display: flex; align-items: center;
+    }
+    .player-btn:hover { color: var(--pink); }
+    .player-btn svg { width: clamp(14px,2vw,18px); height: clamp(14px,2vw,18px); }
+    .play-btn {
+      width: clamp(26px,3.5vw,32px); height: clamp(26px,3.5vw,32px);
+      background: var(--pink); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white !important;
+      box-shadow: 0 0 12px var(--pink-glow);
+    }
+    .play-btn svg { width: clamp(11px,1.5vw,14px); height: clamp(11px,1.5vw,14px); fill: white; }
+
+    .track-select { display: flex; gap: 4px; flex-shrink: 0; }
+    .track-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,179,217,0.3); cursor: pointer; transition: background 0.2s, transform 0.2s;
+    }
+    .track-dot.active { background: var(--pink); transform: scale(1.4); }
+
+    /* ── FIREFLIES ── */
+    .firefly {
+      position: fixed; border-radius: 50%;
+      width: 4px; height: 4px;
+      background: #ffd97d;
+      box-shadow: 0 0 6px 2px rgba(255,217,125,0.8);
+      animation: flyfly var(--dur) var(--del) ease-in-out infinite;
+      z-index: 2;
+    }
+    @keyframes flyfly {
+      0%  { transform: translate(0,0) scale(0.5); opacity: 0; }
+      20% { opacity: 1; transform: translate(var(--tx1), var(--ty1)) scale(1); }
+      50% { opacity: 0.7; transform: translate(var(--tx2), var(--ty2)) scale(1.2); }
+      80% { opacity: 1; transform: translate(var(--tx3), var(--ty3)) scale(0.8); }
+      100%{ transform: translate(0,0) scale(0.5); opacity: 0; }
+    }
+
+    /* ── GARDEN SCENE ── */
+    .garden-scene {
+      position: fixed; bottom: 0; left: 0; width: 100%; height: clamp(180px, 40vh, 55vh);
+      pointer-events: none; z-index: 1;
+    }
+
+    /* ── LETTER ── */
+    main {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 640px;
+      padding: clamp(70px,10vh,110px) clamp(16px,4vw,24px) clamp(180px,38vh,240px);
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    .letter-wrapper {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,110,180,0.2);
+      border-radius: 4px;
+      padding: clamp(24px,4vw,52px) clamp(20px,5vw,60px);
+      position: relative;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 60px rgba(255,110,180,0.06), inset 0 0 40px rgba(255,110,180,0.02);
+      width: 100%;
+    }
+
+    .letter-wrapper::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        transparent, transparent 31px,
+        rgba(255,110,180,0.06) 31px, rgba(255,110,180,0.06) 32px
+      );
+      pointer-events: none;
+    }
+
+    .seal {
+      width: clamp(44px,7vw,64px); height: clamp(44px,7vw,64px);
+      background: radial-gradient(circle at 40% 35%, #e8507a, #9b1a42);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto clamp(20px,3vh,36px);
+      box-shadow: 0 4px 20px rgba(155,26,66,0.5), inset 0 -2px 8px rgba(0,0,0,0.3);
+      font-size: clamp(16px,3vw,22px);
+      animation: sealPulse 3s ease-in-out infinite;
+    }
+    @keyframes sealPulse {
+      0%,100% { box-shadow: 0 4px 20px rgba(155,26,66,0.5), inset 0 -2px 8px rgba(0,0,0,0.3); }
+      50%      { box-shadow: 0 4px 30px rgba(155,26,66,0.8), 0 0 40px rgba(255,110,180,0.2), inset 0 -2px 8px rgba(0,0,0,0.3); }
+    }
+
+    .letter-date {
+      text-align: right;
+      color: rgba(255,179,217,0.45);
+      font-size: clamp(10px,1.5vw,13px);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: clamp(16px,2.5vh,28px);
+    }
+
+    .letter-salutation {
+      font-family: 'Sacramento', cursive;
+      font-size: clamp(26px,5vw,38px);
+      color: var(--pink-soft);
+      margin-bottom: clamp(16px,2.5vh,28px);
+      display: block;
+    }
+
+    .letter-body {
+      color: rgba(255,235,245,0.82);
+      font-size: clamp(14px,2vw,17px);
+      line-height: 1.9;
+      font-weight: 300;
+    }
+    .letter-body p { margin-bottom: clamp(12px,1.8vh,20px); }
+    .letter-body em    { color: var(--pink-soft); font-style: italic; }
+    .letter-body strong{ color: white; font-weight: 400; }
+
+    .letter-closing { margin-top: clamp(20px,3vh,32px); }
+    .letter-closing p {
+      color: rgba(255,235,245,0.6);
+      font-size: clamp(13px,1.8vw,15px);
+      line-height: 2; margin-bottom: 4px;
+    }
+    .letter-closing .signature {
+      font-family: 'Sacramento', cursive;
+      font-size: clamp(28px,5vw,44px);
+      color: var(--pink-soft);
+      display: block; margin-top: 4px;
+    }
+
+    .goto-page2 {
+      margin-top: clamp(24px,3.5vh,40px);
+      display: inline-flex; align-items: center; gap: 10px;
+      text-decoration: none;
+      color: rgba(255,179,217,0.6);
+      font-size: clamp(10px,1.5vw,13px);
+      letter-spacing: 2px; text-transform: uppercase;
+      border: 1px solid rgba(255,110,180,0.2);
+      padding: clamp(8px,1.2vh,10px) clamp(16px,3vw,24px);
+      border-radius: 50px; transition: all 0.3s;
+    }
+    .goto-page2:hover {
+      color: var(--pink-soft);
+      border-color: rgba(255,110,180,0.5);
+      box-shadow: 0 0 20px rgba(255,110,180,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="moon"></div>
+
+<!-- MUSIC PLAYER -->
+<div id="player">
+  <div class="player-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+  </div>
+  <div class="player-info">
+    <div class="player-track" id="trackName">Song 1 — Add your music</div>
+    <div class="player-sub">♫ for you</div>
+  </div>
+  <div class="track-select" id="trackDots">
+    <div class="track-dot active" onclick="selectTrack(0)"></div>
+    <div class="track-dot" onclick="selectTrack(1)"></div>
+    <div class="track-dot" onclick="selectTrack(2)"></div>
+  </div>
+  <div class="player-controls">
+    <button class="player-btn" onclick="prevTrack()" title="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+    <button class="player-btn play-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">
+      <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="white"/></svg>
+    </button>
+    <button class="player-btn" onclick="nextTrack()" title="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- GARDEN BACKGROUND -->
+<svg class="garden-scene" viewBox="0 0 1440 500" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glowPink" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff6eb4" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff6eb4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="stemBg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1a5c2a"/>
+      <stop offset="50%" stop-color="#2d8a40"/>
+      <stop offset="100%" stop-color="#1a5c2a"/>
+    </linearGradient>
+    <radialGradient id="petalBg" cx="50%" cy="80%" r="70%">
+      <stop offset="0%" stop-color="#ffe0f0"/>
+      <stop offset="60%" stop-color="#ffb3d9"/>
+      <stop offset="100%" stop-color="#e0447e"/>
+    </radialGradient>
+    <radialGradient id="centerBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff8e7"/>
+      <stop offset="100%" stop-color="#ffd97d"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ground -->
+  <path d="M0 430 Q360 410 720 418 Q1080 426 1440 412 L1440 500 L0 500Z" fill="#0d1f0f"/>
+  <path d="M0 448 Q360 430 720 436 Q1080 444 1440 432 L1440 500 L0 500Z" fill="#0a1a0c"/>
+  <ellipse cx="300" cy="420" rx="180" ry="55" fill="url(#glowPink)" opacity="0.4"/>
+  <ellipse cx="900" cy="425" rx="150" ry="48" fill="url(#glowPink)" opacity="0.35"/>
+  <ellipse cx="1150" cy="412" rx="120" ry="42" fill="url(#glowPink)" opacity="0.25"/>
+
+  <!-- Left flower cluster -->
+  <g transform="translate(220,260)">
+    <rect x="-4" y="0" width="8" height="170" rx="4" fill="url(#stemBg)"/>
+    <path d="M4 60 C36 44 58 28 62 10 C44 22 20 40 4 56 Z" fill="#4dc468" opacity="0.9"/>
+    <path d="M-4 110 C-36 94 -56 78 -60 60 C-42 72 -18 90 -4 106 Z" fill="#5cd46e" opacity="0.9"/>
+    <g filter="url(#glow)" transform="translate(0,0)">
+      <ellipse cx="-14" cy="-8" rx="12" ry="17" fill="url(#petalBg)" transform="rotate(-45,-14,-8)"/>
+      <ellipse cx="-16" cy="5"  rx="12" ry="17" fill="url(#petalBg)" transform="rotate(-70,-16,5)"/>
+      <ellipse cx="0"   cy="-18" rx="12" ry="17" fill="url(#petalBg)"/>
+      <ellipse cx="16"  cy="5"  rx="12" ry="17" fill="url(#petalBg)" transform="rotate(70,16,5)"/>
+      <ellipse cx="14"  cy="-8" rx="12" ry="17" fill="url(#petalBg)" transform="rotate(45,14,-8)"/>
+      <circle cx="0" cy="-2" r="10" fill="url(#centerBg)"/>
+      <circle cx="0" cy="-2" r="4" fill="#fff8e7"/>
+    </g>
+  </g>
+
+  <!-- Center flower (tallest) -->
+  <g transform="translate(580,180)">
+    <rect x="-4" y="0" width="8" height="250" rx="4" fill="url(#stemBg)"/>
+    <path d="M4 80 C42 62 68 44 72 22 C52 36 26 56 4 76 Z" fill="#4dc468" opacity="0.9"/>
+    <path d="M-4 150 C-42 132 -66 114 -70 92 C-50 106 -24 126 -4 146 Z" fill="#5cd46e" opacity="0.9"/>
+    <g filter="url(#glow)">
+      <ellipse cx="-16" cy="-8" rx="15" ry="21" fill="url(#petalBg)" transform="rotate(-45,-16,-8)"/>
+      <ellipse cx="-18" cy="6"  rx="15" ry="21" fill="url(#petalBg)" transform="rotate(-72,-18,6)"/>
+      <ellipse cx="0"   cy="-21" rx="15" ry="21" fill="url(#petalBg)"/>
+      <ellipse cx="18"  cy="6"  rx="15" ry="21" fill="url(#petalBg)" transform="rotate(72,18,6)"/>
+      <ellipse cx="16"  cy="-8" rx="15" ry="21" fill="url(#petalBg)" transform="rotate(45,16,-8)"/>
+      <circle cx="0" cy="-2" r="12" fill="url(#centerBg)"/>
+      <circle cx="0" cy="-2" r="5" fill="#fff8e7"/>
+    </g>
+  </g>
+
+  <!-- Right flower -->
+  <g transform="translate(950,230)">
+    <rect x="-4" y="0" width="8" height="200" rx="4" fill="url(#stemBg)"/>
+    <path d="M-4 70 C-36 54 -58 38 -62 18 C-44 30 -20 48 -4 66 Z" fill="#5cd46e" opacity="0.9"/>
+    <path d="M4 130 C36 114 56 98 60 78 C42 90 18 108 4 126 Z" fill="#4dc468" opacity="0.9"/>
+    <g filter="url(#glow)">
+      <ellipse cx="-14" cy="-8" rx="13" ry="18" fill="url(#petalBg)" transform="rotate(-45,-14,-8)"/>
+      <ellipse cx="-16" cy="4"  rx="13" ry="18" fill="url(#petalBg)" transform="rotate(-70,-16,4)"/>
+      <ellipse cx="0"   cy="-18" rx="13" ry="18" fill="url(#petalBg)"/>
+      <ellipse cx="16"  cy="4"  rx="13" ry="18" fill="url(#petalBg)" transform="rotate(70,16,4)"/>
+      <ellipse cx="14"  cy="-8" rx="13" ry="18" fill="url(#petalBg)" transform="rotate(45,14,-8)"/>
+      <circle cx="0" cy="-2" r="10" fill="url(#centerBg)"/>
+      <circle cx="0" cy="-2" r="4" fill="#fff8e7"/>
+    </g>
+  </g>
+
+  <!-- Grasses -->
+  <g opacity="0.8">
+    <path d="M0 500 C8 450 4 410 0 370" stroke="#2a8a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M30 500 C40 445 32 400 28 360" stroke="#3aaa50" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M60 500 C65 455 72 415 66 375" stroke="#2a8a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M1380 500 C1388 450 1384 408 1380 368" stroke="#2a8a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M1410 500 C1420 445 1412 400 1408 360" stroke="#3aaa50" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M1440 500 C1445 455 1452 415 1446 375" stroke="#2a8a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mist -->
+  <path d="M0 465 Q360 448 720 455 Q1080 462 1440 450 L1440 500 L0 500Z" fill="rgba(20,8,40,0.4)"/>
+</svg>
+
+<div id="fireflies"></div>
+
+<!-- LETTER -->
+<main>
+  <div class="letter-wrapper">
+    <div class="seal">🌸</div>
+    <div class="letter-date">A night in May, 2026</div>
+
+    <span class="letter-salutation">My BabyGirl,</span>
+
+    <div class="letter-body">
+      <p>
+        I am <em>really sorry my love.</em> Not the easy kind — the kind that lives deep in the chest and knows exactly where it went wrong.
+      </p>
+      <p>
+        You deserve someone who holds you with the same <strong>tenderness you give so freely.</strong> In the moments I failed you, I wasn't that person. I want to be. I swear to god i didnt know that its hurted you. i am really ashamed of my actions.
+      </p>
+      <p>
+        You <em>matter to me</em> more than my pride, more than being right. Enough for me to say this plainly, under every star in the sky.
+      </p>
+      <p>
+        Forgive me — not because I've earned it, but because I love you, and I'll spend every day trying to deserve that. Please frogive me my Barbiegirl.
+      </p>
+    </div>
+
+    <div class="letter-closing">
+      <p>Always and only yours,</p>
+      <span class="signature">With all my heart 💗</span>
+    </div>
+  </div>
+
+  <a class="goto-page2" href="flowers.html">
+    <span>✦</span> Enter the Garden <span>✦</span>
+  </a>
+</main>
+
+<script>
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 180; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*70}%;width:${size}px;height:${size}px;--dur:${Math.random()*3+1.5}s;--del:${Math.random()*4}s;`;
+    starsEl.appendChild(s);
+  }
+
+  // Fireflies
+  const ffEl = document.getElementById('fireflies');
+  for (let i = 0; i < 18; i++) {
+    const f = document.createElement('div');
+    f.className = 'firefly';
+    const tx = () => `${(Math.random()-0.5)*120}px`;
+    const ty = () => `${(Math.random()-0.5)*80}px`;
+    f.style.cssText = `left:${10+Math.random()*80}%;bottom:${10+Math.random()*50}%;--dur:${4+Math.random()*6}s;--del:${Math.random()*5}s;--tx1:${tx()};--ty1:${ty()};--tx2:${tx()};--ty2:${ty()};--tx3:${tx()};--ty3:${ty()};`;
+    ffEl.appendChild(f);
+  }
+
+  // Music Player
+  const tracks = [
+    { name: "The Weeknd - Die For You", src: "music/music 1.mp3" },
+    { name: "Adele - Easy On Me", src: "music/music 2.mp3" },
+    { name: "Tate McRae - she's all i wanna be", src: "music/music 3.mp3" }
+  ];
+  let current = 0, playing = false;
+  const audio = new Audio();
+  audio.addEventListener('ended', () => nextTrack());
+
+  function selectTrack(i) {
+    current = i;
+    audio.src = tracks[i].src;
+    document.getElementById('trackName').textContent = tracks[i].name;
+    document.querySelectorAll('.track-dot').forEach((d,j) => d.classList.toggle('active', j===i));
+    if (playing) audio.play().catch(()=>{});
+  }
+  function togglePlay() {
+    if (playing) {
+      audio.pause(); playing = false;
+      document.getElementById('playIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3" fill="white"/>';
+    } else {
+      if (!audio.src || audio.src === window.location.href) audio.src = tracks[current].src;
+      audio.play().catch(()=>{});
+      playing = true;
+      document.getElementById('playIcon').innerHTML = '<rect x="6" y="4" width="4" height="16" fill="white"/><rect x="14" y="4" width="4" height="16" fill="white"/>';
+    }
+  }
+  function prevTrack() { selectTrack((current - 1 + tracks.length) % tracks.length); }
+  function nextTrack() { selectTrack((current + 1) % tracks.length); }
+</script>
+</body>
+</html>
